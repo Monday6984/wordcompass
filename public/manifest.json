@@ -1,0 +1,13 @@
+{
+  "name": "WordCompass Coaching & Mentoring",
+  "short_name": "WordCompass",
+  "description": "Free one-to-one life coaching for young people aged 12+. DBS-checked mind mentors, online UK-wide.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#0f6457",
+  "icons": [
+    { "src": "/images/brand/wordcompass-mark-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/images/brand/wordcompass-mark-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" }
+  ]
+}
