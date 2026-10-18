@@ -37,6 +37,13 @@
     @apply bg-cream text-charcoal font-body;
     font-size: 18px;
     line-height: 1.7;
+    /* Long unbroken strings (e.g. the contact email) wrap instead of overflowing small screens */
+    overflow-wrap: break-word;
+  }
+
+  /* "anywhere" (unlike break-word) also lets grid/flex columns shrink below the email's length */
+  a[href^="mailto:"] {
+    overflow-wrap: anywhere;
   }
 
   h1, h2, h3, h4 {
