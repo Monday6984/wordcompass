@@ -1,9 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import usePageMeta from "@/hooks/usePageMeta";
-import { supabase } from "@/lib/supabase";
-import { AuthProvider } from "./auth";
-import AdminShell from "./AdminShell";
 import RequireAdmin from "./RequireAdmin";
 import LoginPage from "./LoginPage";
 import ResetPasswordPage from "./ResetPasswordPage";
@@ -25,37 +22,19 @@ export default function AdminApp() {
   useNoIndex();
   usePageMeta("Admin | WordCompass Coaching & Mentoring");
 
-  if (!supabase) {
-    return (
-      <AdminShell>
-        <div className="card-warm mx-auto max-w-xl">
-          <p className="eyebrow">Admin</p>
-          <h1 className="mt-4 font-heading text-2xl font-black text-charcoal">Admin isn't set up yet</h1>
-          <p className="mt-4 text-mid">
-            Add <code className="font-mono text-sm">VITE_SUPABASE_URL</code> and{" "}
-            <code className="font-mono text-sm">VITE_SUPABASE_ANON_KEY</code> to the environment variables
-            (see README), then rebuild.
-          </p>
-        </div>
-      </AdminShell>
-    );
-  }
-
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="login" element={<LoginPage />} />
-        <Route path="reset-password" element={<ResetPasswordPage />} />
-        <Route
-          index
-          element={
-            <RequireAdmin>
-              <RequestsPage />
-            </RequireAdmin>
-          }
-        />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Routes>
-    </AuthProvider>
+    <Routes>
+      <Route path="login" element={<LoginPage />} />
+      <Route path="reset-password" element={<ResetPasswordPage />} />
+      <Route
+        index
+        element={
+          <RequireAdmin>
+            <RequestsPage />
+          </RequireAdmin>
+        }
+      />
+      <Route path="*" element={<Navigate to="/admin" replace />} />
+    </Routes>
   );
 }

@@ -1,28 +1,22 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
-import Btn from "@/components/site/Btn";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "./auth";
-import AdminShell, { AdminLoading, AdminMessage } from "./AdminShell";
+import { Navigate, useNavigate } from "react-router-dom";
+import { signOut, useSession } from "@/lib/authClient";
+import AdminShell, { AdminLoading } from "./AdminShell";
 
-// Signed out → /admin/login. Signed in but not in the admins table → "no access".
+export const SignOutContext = React.createContext(() => {});
+
+// Signed out → /admin/login. Whether the account is an admin is decided by the API
+// (requests return 403 otherwise), see RequestsPage.
 export default function RequireAdmin({ children }) {
-  const { session, signOut } = useAuth();
-  const userId = session?.user?.id;
-  const [check, setCheck] = React.useState({ userId: null, isAdmin: null, failed: false });
+  const { data: session, isPending } = useSession();
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
-    if (!userId) return;
-    let active = true;
-    supabase.rpc("is_admin").then(({ data, error }) => {
-      if (active) setCheck({ userId, isAdmin: data === true, failed: Boolean(error) });
-    });
-    return () => {
-      active = false;
-    };
-  }, [userId]);
+  const handleSignOut = React.useCallback(async () => {
+    await signOut();
+    navigate("/admin/login", { replace: true });
+  }, [navigate]);
 
-  if (session === undefined) {
+  if (isPending) {
     return (
       <AdminShell>
         <AdminLoading />
@@ -31,35 +25,11 @@ export default function RequireAdmin({ children }) {
   }
   if (!session) return <Navigate to="/admin/login" replace />;
 
-  const email = session.user.email;
-  if (check.userId !== userId) {
-    return (
-      <AdminShell email={email} onSignOut={signOut}>
-        <AdminLoading />
-      </AdminShell>
-    );
-  }
-
-  if (!check.isAdmin) {
-    return (
-      <AdminShell email={email} onSignOut={signOut}>
-        <AdminMessage eyebrow="Admin" title="This account doesn't have admin access">
-          <p>
-            {check.failed
-              ? "We couldn't check your access just now. Please try again in a moment."
-              : "If you think it should, ask the site owner to add you as an admin."}
-          </p>
-          <div className="mt-6">
-            <Btn onClick={signOut}>Sign out</Btn>
-          </div>
-        </AdminMessage>
-      </AdminShell>
-    );
-  }
-
   return (
-    <AdminShell email={email} onSignOut={signOut}>
-      {children}
-    </AdminShell>
+    <SignOutContext.Provider value={handleSignOut}>
+      <AdminShell email={session.user.email} onSignOut={handleSignOut}>
+        {children}
+      </AdminShell>
+    </SignOutContext.Provider>
   );
 }

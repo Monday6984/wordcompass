@@ -8,22 +8,27 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:full": "vercel dev",
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "db:migrate": "node scripts/migrate.mjs",
+    "create-admin": "node scripts/create-admin.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "fetch-images": "node scripts/fetch-images.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.118.0",
+    "@neondatabase/serverless": "^1.2.0",
+    "better-auth": "^1.7.10",
     "clsx": "^2.1.1",
     "fast-xml-parser": "^5.11.2",
     "lucide-react": "^0.475.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.26.0",
-    "tailwind-merge": "^3.0.2"
+    "tailwind-merge": "^3.0.2",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

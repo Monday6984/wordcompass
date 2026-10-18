@@ -2,12 +2,19 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import Btn from "@/components/site/Btn";
 import { alertClass, fieldClass, labelClass } from "@/components/site/formStyles";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "./auth";
-import AdminShell from "./AdminShell";
+import { requestPasswordReset, signIn, useSession } from "@/lib/authClient";
+import AdminShell, { AdminLoading } from "./AdminShell";
+
+function signInMessage(error) {
+  if (error?.status === 429) return "Too many attempts. Please wait a few minutes and try again.";
+  if (error?.status === 401 || error?.status === 400) {
+    return "That email and password don't match an account. Please try again.";
+  }
+  return "We couldn't sign you in just now. Please try again.";
+}
 
 export default function LoginPage() {
-  const { session } = useAuth();
+  const { data: session, isPending } = useSession();
   const [mode, setMode] = React.useState("signin"); // "signin" | "forgot"
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -15,6 +22,13 @@ export default function LoginPage() {
   const [error, setError] = React.useState("");
   const [notice, setNotice] = React.useState("");
 
+  if (isPending) {
+    return (
+      <AdminShell>
+        <AdminLoading />
+      </AdminShell>
+    );
+  }
   if (session) return <Navigate to="/admin" replace />;
 
   const switchMode = (next) => {
@@ -31,9 +45,10 @@ export default function LoginPage() {
       return;
     }
     setBusy(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { error: signInError } = await signIn.email({ email: email.trim(), password });
     setBusy(false);
-    if (signInError) setError("That email and password don't match an account. Please try again.");
+    if (signInError) setError(signInMessage(signInError));
+    // On success useSession updates and this page redirects to /admin.
   };
 
   const handleForgot = async (event) => {
@@ -45,14 +60,17 @@ export default function LoginPage() {
       return;
     }
     setBusy(true);
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    const { error: resetError } = await requestPasswordReset({
+      email: email.trim(),
       redirectTo: `${window.location.origin}/admin/reset-password`,
     });
     setBusy(false);
-    if (resetError) {
+    if (resetError?.status === 429) {
+      setError("Too many reset requests. Please wait a while and try again.");
+    } else if (resetError) {
       setError("We couldn't send a reset link just now. Please try again in a few minutes.");
     } else {
-      setNotice("If that email belongs to an account, a link to set a new password is on its way.");
+      setNotice("If that email belongs to an account, a link to set a new password is on its way. It works for one hour.");
     }
   };
 

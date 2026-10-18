@@ -1,11 +1,12 @@
 // POST /api/parent-call
-// Receives the "Book a Free Parent Call" form, re-checks every field, saves it to
-// Supabase (service role key, server-only) and emails the owner via Resend.
+// Receives the "Book a Free Parent Call" form, re-checks every field, saves it to Neon
+// (parameterised query) and emails the owner via Resend.
 //
 // Env vars (server-only, never VITE_-prefixed):
-//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, NOTIFY_EMAIL_TO, NOTIFY_EMAIL_FROM
+//   DATABASE_URL, RESEND_API_KEY, NOTIFY_EMAIL_TO, NOTIFY_EMAIL_FROM, SITE_URL (for the /admin link)
 
-import { createClient } from "@supabase/supabase-js";
+import { getSql } from "./_lib/db.js";
+import { sendEmail } from "./_lib/email.js";
 import { BodyError, getClientIp, readJsonBody, sendJson } from "./_lib/http.js";
 import { AGE_MAX, AGE_MIN, EMAIL_RE, NAME_MAX, PHONE_RE, cleanPhone } from "../src/lib/callRequest.js";
 import { CALL_TIME_OPTIONS, CHALLENGE_OPTIONS } from "../src/data/siteContent.js";
@@ -101,13 +102,9 @@ function validate(body) {
 
 // ── Email alert ─────────────────────────────────────────────────────────────
 async function sendAlert(row) {
-  const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.NOTIFY_EMAIL_TO;
-  const from = process.env.NOTIFY_EMAIL_FROM;
-  if (!apiKey || !to || !from) {
-    console.error("[parent-call] Email alert skipped: RESEND_API_KEY, NOTIFY_EMAIL_TO or NOTIFY_EMAIL_FROM is not set.");
-    return;
-  }
+  if (!to) throw new Error("NOTIFY_EMAIL_TO is not set");
+  const siteUrl = (process.env.SITE_URL || process.env.BETTER_AUTH_URL || "").replace(/\/+$/, "");
 
   const received = new Date().toLocaleString("en-GB", { timeZone: "Europe/London", dateStyle: "full", timeStyle: "short" });
   const text = [
@@ -123,23 +120,16 @@ async function sendAlert(row) {
     "Consent to be contacted: yes",
     `Received: ${received}`,
     "",
-    "Reply to this email to contact the parent directly. Manage requests at /admin.",
+    "Reply to this email to contact the parent directly.",
+    `Manage requests: ${siteUrl ? `${siteUrl}/admin` : "/admin on the website"}`,
   ].join("\n");
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from,
-      to: to.split(",").map((address) => address.trim()).filter(Boolean),
-      reply_to: row.email,
-      subject: `New parent call request – ${row.parent_name.replace(/[\r\n]+/g, " ")}`,
-      text,
-    }),
+  await sendEmail({
+    to,
+    subject: `New parent call request – ${row.parent_name}`,
+    text,
+    replyTo: row.email,
   });
-  if (!response.ok) {
-    throw new Error(`Resend responded ${response.status}: ${await response.text()}`);
-  }
 }
 
 // ── Handler ─────────────────────────────────────────────────────────────────
@@ -148,6 +138,11 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "Method not allowed." }, { Allow: "POST" });
+  }
+
+  const contentType = String(req.headers["content-type"] || "").toLowerCase();
+  if (!contentType.startsWith("application/json")) {
+    return sendJson(res, 415, { error: "Please send the form as JSON." });
   }
 
   let body;
@@ -175,19 +170,15 @@ export default async function handler(req, res) {
   const { row, error } = validate(body);
   if (error) return sendJson(res, 400, { error });
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !serviceKey) {
-    console.error("[parent-call] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set.");
-    return sendJson(res, 500, { error: "We couldn't save your request just now." });
-  }
-
-  const supabase = createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { error: insertError } = await supabase.from("parent_call_requests").insert(row);
-  if (insertError) {
-    console.error("[parent-call] Insert failed:", insertError.message);
+  try {
+    await getSql().query(
+      `insert into parent_call_requests
+         (parent_name, email, phone, child_age, main_challenge, preferred_call_time, preferred_coach, consent)
+       values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [row.parent_name, row.email, row.phone, row.child_age, row.main_challenge, row.preferred_call_time, row.preferred_coach, row.consent]
+    );
+  } catch (error) {
+    console.error("[parent-call] Insert failed:", error.message);
     return sendJson(res, 500, { error: "We couldn't save your request just now." });
   }
 

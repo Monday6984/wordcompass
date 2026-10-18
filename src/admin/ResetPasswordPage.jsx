@@ -1,27 +1,50 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Btn from "@/components/site/Btn";
 import { alertClass, fieldClass, labelClass } from "@/components/site/formStyles";
-import { initialHash, supabase } from "@/lib/supabase";
-import { useAuth } from "./auth";
-import AdminShell, { AdminLoading, AdminMessage } from "./AdminShell";
+import { resetPassword } from "@/lib/authClient";
+import AdminShell, { AdminMessage } from "./AdminShell";
 
-const MIN_LENGTH = 10;
+const MIN_LENGTH = 12; // keep in step with minPasswordLength in api/_lib/auth.js
 
-// Supabase's "reset password" email links here. The Supabase client reads the token from
-// the link and signs the user in, then they choose a new password.
-function linkError() {
-  const params = new URLSearchParams(initialHash.replace(/^#/, ""));
-  return params.get("error_description") || params.get("error") || "";
-}
-
+// The reset email links to /api/auth/reset-password/<token>, which checks the token and
+// sends the user here with ?token=… (or ?error=INVALID_TOKEN if it has expired or been used).
 export default function ResetPasswordPage() {
-  const { session } = useAuth();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const linkError = searchParams.get("error");
+
   const [password, setPassword] = React.useState("");
   const [confirm, setConfirm] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
   const [done, setDone] = React.useState(false);
+
+  if (!token || linkError) {
+    return (
+      <AdminShell>
+        <AdminMessage eyebrow="Admin" title="This reset link has expired or isn't valid">
+          <p>Reset links work once and expire after an hour. Please request a new one from the sign-in page.</p>
+          <div className="mt-6">
+            <Btn to="/admin/login">Back to sign in</Btn>
+          </div>
+        </AdminMessage>
+      </AdminShell>
+    );
+  }
+
+  if (done) {
+    return (
+      <AdminShell>
+        <AdminMessage eyebrow="Admin" title="Your password has been updated">
+          <p>For safety, you've been signed out everywhere. Sign in with your new password.</p>
+          <div className="mt-6">
+            <Btn to="/admin/login">Sign in</Btn>
+          </div>
+        </AdminMessage>
+      </AdminShell>
+    );
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -35,48 +58,15 @@ export default function ResetPasswordPage() {
       return;
     }
     setBusy(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const { error: resetError } = await resetPassword({ newPassword: password, token });
     setBusy(false);
-    if (updateError) setError(updateError.message || "We couldn't update your password. Please try again.");
-    else setDone(true);
+    if (!resetError) setDone(true);
+    else if (resetError.status === 429) setError("Too many attempts. Please wait a few minutes and try again.");
+    else setError("This link has expired or has already been used. Please request a new one from the sign-in page.");
   };
 
-  if (session === undefined) {
-    return (
-      <AdminShell>
-        <AdminLoading />
-      </AdminShell>
-    );
-  }
-
-  if (!session) {
-    const reason = linkError();
-    return (
-      <AdminShell>
-        <AdminMessage eyebrow="Admin" title="This reset link has expired or isn't valid">
-          <p>{reason ? `${reason}. ` : ""}Reset links work once and expire after a short time. Please request a new one.</p>
-          <div className="mt-6">
-            <Btn to="/admin/login">Back to sign in</Btn>
-          </div>
-        </AdminMessage>
-      </AdminShell>
-    );
-  }
-
-  if (done) {
-    return (
-      <AdminShell email={session.user.email}>
-        <AdminMessage eyebrow="Admin" title="Your password has been updated">
-          <div className="mt-2">
-            <Btn to="/admin">Go to call requests</Btn>
-          </div>
-        </AdminMessage>
-      </AdminShell>
-    );
-  }
-
   return (
-    <AdminShell email={session.user.email}>
+    <AdminShell>
       <div className="card-soft mx-auto max-w-md">
         <p className="eyebrow">Admin</p>
         <h1 className="mt-4 font-heading text-2xl font-black text-charcoal sm:text-3xl">Choose a new password</h1>
@@ -116,14 +106,9 @@ export default function ResetPasswordPage() {
               {error}
             </p>
           )}
-          <div className="flex flex-wrap items-center gap-4">
-            <Btn type="submit" disabled={busy}>
-              {busy ? "Saving…" : "Save new password"}
-            </Btn>
-            <Link to="/admin" className="font-body text-base font-semibold text-teal underline-offset-4 hover:underline">
-              Cancel
-            </Link>
-          </div>
+          <Btn type="submit" disabled={busy}>
+            {busy ? "Saving…" : "Save new password"}
+          </Btn>
         </form>
       </div>
     </AdminShell>

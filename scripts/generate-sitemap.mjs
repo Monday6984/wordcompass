@@ -1,7 +1,7 @@
 // Writes public/sitemap.xml and public/robots.txt before every build (`npm run build`).
 // Pages come from the list below plus every coach in src/data/coaches.js.
 // The domain comes from SITE_URL (Vercel env var, or .env / .env.local locally).
-// /admin is never listed, and robots.txt tells search engines to stay out of it.
+// /admin is never listed, and robots.txt tells search engines to stay out of /admin and /api.
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,6 +48,7 @@ ${paths.map((page) => `  <url><loc>${escapeXml(siteUrl + (page === "/" ? "/" : p
 const robots = `User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /api
 
 Sitemap: ${siteUrl}/sitemap.xml
 `;

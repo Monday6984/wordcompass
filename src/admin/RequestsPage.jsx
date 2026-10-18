@@ -1,15 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import Btn from "@/components/site/Btn";
 import { alertClass, fieldClass } from "@/components/site/formStyles";
-import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
-import { downloadCsv } from "./csv";
+import { AdminMessage } from "./AdminShell";
+import { SignOutContext } from "./RequireAdmin";
 
-const TABLE = "parent_call_requests";
 const STATUSES = ["New", "Called", "Matched", "Not proceeding"];
-const PAGE_SIZE = 50;
-const COLUMNS =
-  "id,created_at,parent_name,email,phone,child_age,main_challenge,preferred_call_time,preferred_coach,status,notes";
 
 const receivedFormat = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Europe/London",
@@ -21,12 +18,26 @@ const receivedFormat = new Intl.DateTimeFormat("en-GB", {
 });
 const formatReceived = (iso) => receivedFormat.format(new Date(iso));
 
-// PostgREST's or() filter uses commas and brackets as syntax, so drop those from the search.
-function applyFilters(query, status, search) {
-  let next = status === "All" ? query : query.eq("status", status);
-  const term = search.replace(/[,()"'\\%*]/g, " ").trim();
-  if (term) next = next.or(`parent_name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%`);
-  return next;
+function queryString(params) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) if (value) search.set(key, value);
+  const text = search.toString();
+  return text ? `?${text}` : "";
+}
+
+// Calls an /api/admin endpoint with the session cookie. Returns { status, data }.
+async function adminFetch(path, options = {}) {
+  try {
+    const response = await fetch(path, {
+      ...options,
+      credentials: "same-origin",
+      headers: { Accept: "application/json", ...(options.body ? { "Content-Type": "application/json" } : {}) },
+    });
+    const data = await response.json().catch(() => ({}));
+    return { status: response.status, data };
+  } catch {
+    return { status: 0, data: {} };
+  }
 }
 
 function useMediaQuery(query) {
@@ -42,19 +53,44 @@ function useMediaQuery(query) {
 }
 
 export default function RequestsPage() {
+  const navigate = useNavigate();
+  const signOut = React.useContext(SignOutContext);
   const [status, setStatus] = React.useState("All");
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [rows, setRows] = React.useState([]);
+  const [page, setPage] = React.useState(1);
   const [total, setTotal] = React.useState(0);
-  const [counts, setCounts] = React.useState({});
+  const [counts, setCounts] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
+  const [forbidden, setForbidden] = React.useState(false);
   const [error, setError] = React.useState("");
   const [rowErrors, setRowErrors] = React.useState({});
   const requestId = React.useRef(0);
   const wide = useMediaQuery("(min-width: 1024px)");
+
+  const filterParams = React.useMemo(
+    () => ({ status: status === "All" ? "" : status, q: search.trim() }),
+    [status, search]
+  );
+
+  // Shared handling for 401 (signed out) and 403 (not an admin). Returns true if handled.
+  const handleAuthStatus = React.useCallback(
+    (code) => {
+      if (code === 401) {
+        navigate("/admin/login", { replace: true });
+        return true;
+      }
+      if (code === 403) {
+        setForbidden(true);
+        return true;
+      }
+      return false;
+    },
+    [navigate]
+  );
 
   // Debounce the search box.
   React.useEffect(() => {
@@ -62,93 +98,74 @@ export default function RequestsPage() {
     return () => window.clearTimeout(timer);
   }, [searchInput]);
 
-  const loadCounts = React.useCallback(async () => {
-    const results = await Promise.all(
-      ["All", ...STATUSES].map((name) => {
-        const query = supabase.from(TABLE).select("id", { count: "exact", head: true });
-        return name === "All" ? query : query.eq("status", name);
-      })
-    );
-    const next = {};
-    ["All", ...STATUSES].forEach((name, index) => {
-      next[name] = results[index].count ?? 0;
-    });
-    setCounts(next);
-  }, []);
-
-  const fetchPage = React.useCallback(
-    (from) =>
-      applyFilters(
-        supabase
-          .from(TABLE)
-          .select(COLUMNS, { count: "exact" })
-          .order("created_at", { ascending: false })
-          .range(from, from + PAGE_SIZE - 1),
-        status,
-        search
-      ),
-    [status, search]
-  );
-
   // First page whenever the filter or search changes.
   React.useEffect(() => {
     const id = ++requestId.current;
     setLoading(true);
     setError("");
-    fetchPage(0).then(({ data, count, error: loadError }) => {
+    adminFetch(`/api/admin/requests${queryString({ ...filterParams, page: "1" })}`).then(({ status: code, data }) => {
       if (id !== requestId.current) return;
       setLoading(false);
-      if (loadError) {
-        setError("We couldn't load the requests. Please refresh the page.");
+      if (handleAuthStatus(code)) return;
+      if (code !== 200) {
+        setError(data.error || "We couldn't load the requests. Please refresh the page.");
         return;
       }
-      setRows(data);
-      setTotal(count ?? data.length);
+      setRows(data.items);
+      setTotal(data.total);
+      setCounts(data.counts);
+      setPage(1);
     });
-  }, [fetchPage]);
-
-  React.useEffect(() => {
-    loadCounts();
-  }, [loadCounts]);
+  }, [filterParams, handleAuthStatus]);
 
   const loadMore = async () => {
     const id = requestId.current;
     setLoadingMore(true);
-    const { data, count, error: loadError } = await fetchPage(rows.length);
+    const { status: code, data } = await adminFetch(
+      `/api/admin/requests${queryString({ ...filterParams, page: String(page + 1) })}`
+    );
     setLoadingMore(false);
-    if (id !== requestId.current) return;
-    if (loadError) {
-      setError("We couldn't load more requests. Please try again.");
+    if (id !== requestId.current || handleAuthStatus(code)) return;
+    if (code !== 200) {
+      setError(data.error || "We couldn't load more requests. Please try again.");
       return;
     }
-    setRows((current) => [...current, ...data]);
-    setTotal(count ?? total);
+    setRows((current) => [...current, ...data.items.filter((item) => !current.some((row) => row.id === item.id))]);
+    setTotal(data.total);
+    setCounts(data.counts);
+    setPage(page + 1);
   };
 
   const patchRow = (id, changes) =>
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...changes } : row)));
 
+  const patchRequest = (id, body) =>
+    adminFetch(`/api/admin/requests/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(body) });
+
   const changeStatus = async (row, next) => {
     const previous = row.status;
+    if (next === previous) return;
     patchRow(row.id, { status: next });
     setRowErrors((current) => ({ ...current, [row.id]: undefined }));
-    const { data, error: saveError } = await supabase.from(TABLE).update({ status: next }).eq("id", row.id).select("id");
-    if (saveError || !data?.length) {
+    const { status: code, data } = await patchRequest(row.id, { status: next });
+    if (handleAuthStatus(code)) return;
+    if (code !== 200) {
       patchRow(row.id, { status: previous });
       setRowErrors((current) => ({
         ...current,
-        [row.id]: `Couldn't change the status to "${next}". It's back to "${previous}". Please try again.`,
+        [row.id]: `Couldn't change the status to "${next}". It's back to "${previous}". ${data.error || "Please try again."}`,
       }));
       return;
     }
-    loadCounts();
+    setCounts((current) =>
+      current ? { ...current, [previous]: current[previous] - 1, [next]: current[next] + 1 } : current
+    );
   };
 
   const saveNotes = async (row, notes) => {
-    const value = notes.trim() ? notes : null;
-    const { data, error: saveError } = await supabase.from(TABLE).update({ notes: value }).eq("id", row.id).select("id");
-    if (saveError || !data?.length) return false;
-    patchRow(row.id, { notes: value });
+    const { status: code, data } = await patchRequest(row.id, { notes });
+    if (handleAuthStatus(code) || code !== 200) return false;
+    patchRow(row.id, { notes: data.notes });
     return true;
   };
 
@@ -156,24 +173,38 @@ export default function RequestsPage() {
     setExporting(true);
     setError("");
     try {
-      const all = [];
-      for (let from = 0; ; from += 1000) {
-        const { data, error: exportError } = await applyFilters(
-          supabase.from(TABLE).select(COLUMNS).order("created_at", { ascending: false }).range(from, from + 999),
-          status,
-          search
-        );
-        if (exportError) throw exportError;
-        all.push(...data);
-        if (data.length < 1000) break;
-      }
-      downloadCsv(all, formatReceived);
+      const response = await fetch(`/api/admin/export${queryString(filterParams)}`, { credentials: "same-origin" });
+      if (handleAuthStatus(response.status)) return;
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const match = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") || "");
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = match ? match[1] : "wordcompass-requests.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     } catch {
       setError("We couldn't export the list. Please try again.");
     } finally {
       setExporting(false);
     }
   };
+
+  if (forbidden) {
+    return (
+      <AdminMessage eyebrow="Admin" title="This account doesn't have admin access">
+        <p>If you think it should, ask the site owner to make your account an admin.</p>
+        <div className="mt-6">
+          <Btn onClick={signOut}>Sign out</Btn>
+        </div>
+      </AdminMessage>
+    );
+  }
+
+  const tabCount = (name) =>
+    counts ? (name === "All" ? STATUSES.reduce((sum, key) => sum + (counts[key] || 0), 0) : counts[name] ?? 0) : "–";
 
   const itemProps = (row) => ({
     row,
@@ -215,7 +246,7 @@ export default function RequestsPage() {
           >
             {name}
             <span className={cn("font-mono text-xs", status === name ? "text-white/80" : "text-mid")}>
-              {counts[name] ?? "–"}
+              {tabCount(name)}
             </span>
           </button>
         ))}
@@ -229,6 +260,7 @@ export default function RequestsPage() {
           id="request-search"
           type="search"
           placeholder="Search name, email or phone"
+          maxLength={100}
           className={cn(fieldClass, "mt-0")}
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
@@ -338,6 +370,7 @@ function NotesEditor({ row, onSave }) {
       <textarea
         id={fieldId}
         rows={3}
+        maxLength={5000}
         placeholder="Notes"
         className={cn(fieldClass, "mt-0 py-2 text-sm")}
         value={draft}

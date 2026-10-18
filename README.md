@@ -3,121 +3,169 @@
 The public website for WordCompass Coaching & Mentoring (a Transformational Vocabularies company),
 plus a private admin area for parent call requests.
 
-- **Front end:** React 18 + Vite 6 + Tailwind CSS 3 single-page app (react-router-dom v6, lucide-react).
-  Most content lives in plain data files in `src/data/`.
-- **Booking form:** saved to a **Supabase** database by a Vercel serverless function, which also emails
-  the owner through **Resend**.
-- **Admin:** `/admin`, sign in with a Supabase account to view and manage call requests.
-- **Blog:** the latest posts are pulled from the WordPress blog at transformationalvocabularies.com.
-  Each post opens on that blog.
-- **Hosting:** Vercel (static site + functions in `api/`).
+## How it's built
 
-## Run it locally
+| Part | What | Where |
+| --- | --- | --- |
+| Frontend | React 18 + Vite 6 + Tailwind CSS 3 single-page app (react-router-dom v6, lucide-react). Content lives in plain data files. | `src/` (content in `src/data/`) |
+| Backend | Vercel serverless functions (Node). The browser **never** talks to the database; every read and write goes through `/api`. | `api/` |
+| Database | Neon Postgres, London region (aws-eu-west-2), because the data includes children's ages. | `db/migrations/` |
+| Login | Better Auth (email + password), running in our own function, with its tables in the same Neon database. | `api/auth/[...all].js`, `api/_lib/auth.js` |
+| Email | Resend: new-request alerts and password-reset emails. | `api/_lib/email.js` |
+| Hosting | Vercel. | `vercel.json` |
 
-You need Node 18 or newer.
+```
+api/
+  parent-call.js              POST  booking form → database + email alert
+  blog-feed.js                GET   latest posts from the WordPress blog
+  auth/[...all].js            *     Better Auth: sign in/out, session, password reset
+  admin/requests/index.js     GET   request list (admin only)
+  admin/requests/[id].js      PATCH change status / notes (admin only)
+  admin/export.js             GET   CSV export (admin only)
+  _lib/                       shared server code (not endpoints): db, auth, requireAdmin, email…
+db/migrations/                SQL, applied in order by `npm run db:migrate`
+scripts/                      migrate, create-admin, sitemap generator, optional photo download
+src/
+  admin/                      /admin area (lazy-loaded; public visitors never download it)
+  components/home/            homepage sections
+  components/site/            header, footer, form, cards, shared building blocks
+  data/                       editable content (site text, coaches)
+  hooks/ lib/ pages/
+public/                       images, favicon, manifest, sitemap.xml, robots.txt
+```
+
+## Local development
+
+You need Node 18 or newer and the Vercel CLI (`npm i -g vercel`).
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in the values (see "Environment variables")
-npm run dev                  # http://localhost:5173
-npm run lint                 # check the code
-npm run build                # production files go into dist/ (also regenerates the sitemap)
-npm run preview              # serve the built dist/ (note: /api does not run in preview)
+cp .env.example .env.local      # then fill it in (see "Environment variables")
+vercel login                    # once
+vercel link                     # once: connects this folder to your Vercel project
+npm run db:migrate              # once, and after adding a migration
+npm run create-admin -- you@example.com "Your Name"
+
+npm run dev:full                # `vercel dev`: site + /api together on http://localhost:3000
 ```
 
-**Local API:** `npm run dev` also runs the serverless functions in `api/` (`/api/parent-call`,
-`/api/blog-feed`) through a small Vite dev-server middleware (see `vite.config.js`). It reads every
-variable in `.env.local`, so you don't need the Vercel CLI. If you prefer Vercel's own emulator,
-`npx vercel dev` also works.
+- **`npm run dev:full`** (`vercel dev`) runs the Vite app **and** the `/api` functions, reading
+  `.env.local`. Use it for anything involving the form, admin, login or blog feed.
+- **`npm run dev`** is plain Vite on http://localhost:5173, for quick frontend-only work. `/api`
+  doesn't exist there, so the blog shows its "Visit our blog" fallback and the form shows its
+  "Send by email instead" option. That's expected.
+- `npm run lint`, `npm run build` (also regenerates `public/sitemap.xml` and `robots.txt`),
+  `npm run preview`.
 
 ## Environment variables
 
-Put them in `.env.local` locally (git-ignored) and in **Vercel → Project → Settings → Environment
-Variables** for the live site. `VITE_` variables are built into the public JavaScript; the others
-stay on the server.
+Put them in `.env.local` locally (git-ignored) and in **Vercel → Settings → Environment Variables**
+for **Production and Preview**. **Secret** ones must never be shared or committed, and nothing
+secret may start with `VITE_` (those are built into the public JavaScript).
 
-| Variable | Where it's used | What it is |
+| Variable | Secret? | What it is |
 | --- | --- | --- |
-| `VITE_SUPABASE_URL` | browser (admin) | Supabase Project URL |
-| `VITE_SUPABASE_ANON_KEY` | browser (admin) | Supabase "anon public" key, safe to expose (row-level security protects data) |
-| `SUPABASE_URL` | server | Supabase Project URL (same value) |
-| `SUPABASE_SERVICE_ROLE_KEY` | server only | Supabase "service_role" key. **Secret:** bypasses security rules |
-| `RESEND_API_KEY` | server only | Resend API key for the alert email |
-| `NOTIFY_EMAIL_TO` | server | Who gets the alert (comma-separate several) |
-| `NOTIFY_EMAIL_FROM` | server | Sender, e.g. `WordCompass <alerts@your-verified-domain>`. Use `WordCompass <onboarding@resend.dev>` until your domain is verified |
-| `BLOG_FEED_URL` | server | `https://transformationalvocabularies.com/wp-json/wp/v2/posts` (or any RSS/Atom feed URL) |
-| `BLOG_SITE_URL` | server | The blog's home page, used to resolve relative links in the feed |
-| `VITE_BLOG_SITE_URL` | browser | The blog's home page, for the "Visit our blog" buttons |
-| `SITE_URL` | build | `https://coaching.transformationalvocabularies.com`, used for sitemap.xml and robots.txt |
+| `DATABASE_URL` | **secret** | Neon **pooled** connection string (host contains `-pooler`) |
+| `BETTER_AUTH_SECRET` | **secret** | Random string that signs sessions. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
+| `BETTER_AUTH_URL` | | Site address. Local `http://localhost:3000`; Production `https://coaching.transformationalvocabularies.com`; leave **unset** for Preview (the preview's own URL is used) |
+| `RESEND_API_KEY` | **secret** | Resend API key |
+| `NOTIFY_EMAIL_TO` | | Who gets new-request alerts (comma-separate several) |
+| `NOTIFY_EMAIL_FROM` | | Sender for all emails, e.g. `WordCompass <alerts@transformationalvocabularies.com>`. Until the domain is verified: `WordCompass <onboarding@resend.dev>` (only delivers to your own Resend signup address) |
+| `BLOG_FEED_URL` | | `https://transformationalvocabularies.com/wp-json/wp/v2/posts` (or any RSS/Atom feed URL) |
+| `BLOG_SITE_URL` | | Blog home page (server side) |
+| `VITE_BLOG_SITE_URL` | public | Blog home page for the "Visit our blog" buttons |
+| `SITE_URL` | | `https://coaching.transformationalvocabularies.com`: sitemap, robots.txt, trusted origin, link in alert emails |
 
-After changing a `VITE_` variable on Vercel, redeploy so it's built in.
+## Database (Neon)
 
-## Supabase setup (one time)
+1. console.neon.tech → **New project** → name `wordcompass` → region **AWS Europe (London)**.
+2. **Connect** → turn on **Connection pooling** → copy the string into `DATABASE_URL`.
+3. Run **`npm run db:migrate`**. It applies `db/migrations/*.sql` in order and records each in a
+   `schema_migrations` table, so it's safe to run again. You can also paste a file into Neon's
+   **SQL Editor**, but then the runner won't know it was applied.
 
-1. Create a project at supabase.com in region **West EU (London) – eu-west-2** (the data includes
-   children's ages, so it stays in the UK).
-2. **SQL Editor → New query**, paste `supabase/migrations/001_init.sql`, **Run**. This creates the
-   `parent_call_requests` and `admins` tables, the `is_admin()` function and the row-level security
-   rules. It's safe to run again.
-3. **Authentication → Providers → Email:** turn **off** "Allow new users to sign up".
-4. **Authentication → URL Configuration:** set **Site URL** to
-   `https://coaching.transformationalvocabularies.com`, and add these **Redirect URLs**:
-   `https://coaching.transformationalvocabularies.com/admin/reset-password` and
-   `http://localhost:5173/admin/reset-password`.
-5. **Project Settings → API:** copy the Project URL, anon key and service_role key into your env vars.
+| Migration | Creates |
+| --- | --- |
+| `001_parent_call_requests.sql` | the requests table, `updated_at` trigger, indexes |
+| `002_auth.sql` | Better Auth's `user`, `session`, `account`, `verification`, `rateLimit` tables (generated by Better Auth 1.7.10 from `api/_lib/auth.js`), with `user.role` defaulting to `user` |
 
-### Add an admin
+To change the database later, add `003_….sql` and run `npm run db:migrate` (locally, pointing at
+the production `DATABASE_URL`). If you change Better Auth plugins in `api/_lib/auth.js`, regenerate
+its schema with Better Auth's CLI (better-auth.com/docs/concepts/cli) and add the difference as a
+new migration.
 
-1. **Authentication → Users → Invite user** (or **Add user**) with their email.
-2. In the SQL Editor, run (with their email):
-   ```sql
-   insert into admins (user_id, email)
-   select id, email from auth.users where email = 'person@example.com';
-   ```
-3. They sign in at `/admin/login`. "Forgot password?" emails them a reset link.
+**Neon free plan:** the database sleeps after 5 minutes without activity and wakes automatically on
+the next request. That first request after a quiet spell (a form submission or admin page) takes a
+moment longer. This is normal.
 
-To remove one: `delete from admins where email = 'person@example.com';`. Anyone signed in who isn't
-in `admins` sees "This account doesn't have admin access".
+## Admin accounts
+
+Public sign-up is switched off. The **only** way to create an account is:
+
+```bash
+npm run create-admin -- someone@example.com "Full Name"
+```
+
+This creates the account with role `admin` and prints a **temporary password once**. Sign in at
+`/admin/login`, then change it: sign out, choose **Forgot password?**, and follow the emailed link
+(valid for 1 hour, single use). If the email already has an account, the command just makes it an
+admin and leaves the password alone. Run it locally with `DATABASE_URL` pointing at production.
+
+- **Forgotten password:** "Forgot password?" on `/admin/login` emails a reset link. Resetting signs
+  the account out everywhere. Reset emails go through Resend, so `RESEND_API_KEY` and
+  `NOTIFY_EMAIL_FROM` must be set. With the test sender, they only reach your Resend signup address.
+- **Remove admin access:** in Neon's SQL Editor,
+  `update "user" set role = 'user' where email = 'someone@example.com';`
+  (or `delete from "user" where email = …` to remove the account and its sessions).
 
 ## How it works
 
-### Booking form → database + email
+### Booking form → database + email alert
+`src/components/site/BookCallForm.jsx` checks the fields in the browser and POSTs JSON to
+`/api/parent-call`. The function:
 
-`src/components/site/BookCallForm.jsx` checks the fields in the browser, then POSTs JSON to
-`/api/parent-call` (`api/parent-call.js`). The function:
+- accepts only POST with `application/json`, up to 10 KB;
+- quietly accepts and discards anything with the hidden honeypot field (`company`) filled;
+- limits each IP to 5 requests per 10 minutes (in memory, so it resets when Vercel starts a new
+  instance: a speed bump, not a guarantee);
+- re-checks every field with the same rules as the form (`src/lib/callRequest.js`, the dropdown
+  lists in `src/data/siteContent.js`, coach names in `src/data/coaches.js`) and rejects unknown fields;
+- inserts the row with a parameterised query;
+- emails `NOTIFY_EMAIL_TO` (subject "New parent call request – {name}", reply-to the parent, link to
+  `/admin`). If the email fails, the request is still saved and the parent still sees success. The
+  error appears in Vercel's function logs.
 
-- rejects bodies over 10 KB, unknown fields and anything that fails the same rules as the form
-  (`src/lib/callRequest.js`, plus the dropdown lists in `src/data/siteContent.js`);
-- silently accepts and discards submissions with the hidden honeypot field (`company`) filled in;
-- limits each IP to 5 requests per 10 minutes. This is in memory, so it resets when Vercel starts a
-  new instance; it's a speed bump, not a guarantee;
-- inserts the row with the service role key (the browser can never insert or delete);
-- emails `NOTIFY_EMAIL_TO` through Resend, with reply-to set to the parent. If the email fails, the
-  request is still saved and the parent still sees success. The error goes to Vercel's function logs.
-
-If the API can't be reached (network error or a server error), the form offers a **"Send by email
-instead"** button that opens the visitor's email app with the request pre-filled, addressed to
-`SITE.email`.
+If the API can't be reached (network error or server error), the form offers a **"Send by email
+instead"** button that opens the visitor's email app with the details filled in.
 
 Coach pages link to `/book-a-call?coach={slug}`. The form then shows "You'd like to talk about
-working with {name}" and saves `preferred_coach`.
+working with {name}" and saves it as `preferred_coach`.
 
-### Admin area (`/admin`)
-
-Lazy-loaded (public visitors never download it), with no public header or footer, and marked
-`noindex`. Sign in, then filter by status, search by name, email or phone, change status (saved
-immediately), add notes, export the filtered list as CSV, and load 50 more at a time. Nothing on the
-public site links to it.
+### Login and admin
+- Better Auth runs at `/api/auth/*` (`api/auth/[...all].js`, config in `api/_lib/auth.js`):
+  - email + password only, with sign-up disabled;
+  - httpOnly, SameSite=Lax cookies, Secure on https;
+  - sessions end after 7 days without activity;
+  - sign-in and reset requests are rate-limited per IP, stored in the database;
+  - trusted origins are the live domain, the current Vercel deployment URL, and `http://localhost:3000`.
+- Every `/api/admin/*` function starts with `requireAdmin` (`api/_lib/requireAdmin.js`). It returns
+  401 if there's no session and 403 if the account's role isn't `admin`. Changes (PATCH) also
+  require our own `Origin` header (CSRF protection).
+- `/admin/login`, `/admin/reset-password` and `/admin` (the request list) live outside the public
+  layout, are marked `noindex`, and are a separate lazy-loaded chunk. Nothing on the public site
+  links to them.
+- The list offers status tabs with counts, search (name, email or phone), a status dropdown that
+  saves immediately, notes, "Load more" (50 at a time), and **Export CSV** of the current filter.
+  In the CSV, any value starting with `= + - @` gets a leading apostrophe so spreadsheets can't run
+  it as a formula. That includes phone numbers written as `+44…`.
 
 ### Blog feed
-
-`/api/blog-feed` (`api/blog-feed.js`) fetches the 12 newest posts from `BLOG_FEED_URL` (WordPress
-REST API, falling back to the blog's `/feed/` RSS if the API fails). It strips HTML, trims excerpts
-to about 180 characters, allows only http(s) links and images, and returns
-`[{ title, url, excerpt, date, image, category }]`. Vercel caches it for 15 minutes (and serves a
-stale copy for up to a day while refreshing). If anything fails it returns `[]`, and the site shows
-a "Visit our blog" button instead. `/blog` shows up to 12 posts, and the homepage "Latest stories"
-strip shows 3 (hidden when there are none). Old `/blog/...` links redirect to `/blog`.
+`/api/blog-feed` fetches the 12 newest posts from `BLOG_FEED_URL` (WordPress REST API, falling back
+to the blog's `/feed/` RSS). It strips HTML, trims excerpts to about 180 characters, allows only
+http(s) links and images, and is cached by Vercel for 15 minutes (stale copies are served for up to
+a day while it refreshes). On any failure it returns `[]`, and the site shows "Visit our blog".
+`/blog` shows up to 12 posts and the homepage "Latest stories" strip shows 3. Old `/blog/...` links
+redirect to `/blog`.
 
 ## Where to edit things
 
@@ -130,86 +178,55 @@ strip shows 3 (hidden when there are none). Old `/blog/...` links redirect to `/
 | Logo and photo paths | `src/data/assets.js` |
 | Policy pages | `src/pages/Safeguarding.jsx`, `Privacy.jsx`, `Terms.jsx`, `Cookies.jsx` |
 | Colours and fonts | `tailwind.config.js` and `src/index.css` |
-| Pages listed in the sitemap | `scripts/generate-sitemap.mjs` → `ROUTES` |
+| Pages in the sitemap | `scripts/generate-sitemap.mjs` → `ROUTES` |
 
-Anything in **[square brackets]** on the site is a placeholder waiting for real content. Search the
-project for `[` and `£X` to find them all.
+Anything in **[square brackets]** on the site is a placeholder. Search the project for `[` and `£X`.
 
 ### Add or edit a coach
-
 Each coach in `src/data/coaches.js` has:
 
 - `name`, `headline`
-- `slug`: their page address, `/coaches/{slug}`. Lowercase with hyphens, unique, e.g.
+- `slug`: their page address, `/coaches/{slug}`. Lowercase with hyphens and unique, e.g.
   `messiah-odinma`. Changing it changes the URL.
 - `shortBio`: one or two sentences for the cards on the homepage and `/coaches`.
-- `bio`, `expertise` (title + body list), `connect`: the full profile on their own page.
-- `photo`: `null` shows their initials on a teal circle. To add one, save a **square** image, at least
-  **800×800**, as `public/images/coaches/{slug}.webp` and set
-  `photo: "/images/coaches/{slug}.webp"`. See `public/images/coaches/README.txt`.
+- `bio`, `expertise` (title + body), `connect`: the full profile on their page.
+- `photo`: `null` shows their initials on a teal circle. To add one, save a **square** photo at
+  least **800×800** as `public/images/coaches/{slug}.webp` and set
+  `photo: "/images/coaches/{slug}.webp"` (see `public/images/coaches/README.txt`).
 - `featured: true` shows them on the homepage.
 
-New coaches automatically get a page, previous/next links, a sitemap entry, and become a valid
+A new coach automatically gets a page, previous/next links and a sitemap entry, and becomes a valid
 "preferred coach" on the form.
 
 ### Site photos
-
 The four site photos are committed in `public/images/photos/`. `npm run fetch-images` re-downloads
-any missing ones from Base44; it is **not** part of dev or build, so deploys never depend on Base44.
-
-**Safeguarding PDF:** put it in `public/documents/` and replace the "coming soon" label in
-`src/pages/Safeguarding.jsx` (there's a comment showing the link to use).
-
-## Folder structure
-
-```
-api/                    Vercel serverless functions
-  parent-call.js        POST: save a call request + email alert
-  blog-feed.js          GET: latest blog posts as JSON
-  _lib/http.js          shared helpers (not an endpoint)
-supabase/migrations/    SQL to run in Supabase
-scripts/
-  generate-sitemap.mjs  writes public/sitemap.xml + robots.txt (runs before every build)
-  fetch-images.mjs      optional one-off photo download
-public/                 static files (images, favicon, manifest, sitemap, robots)
-src/
-  admin/                /admin area (lazy-loaded chunk)
-  components/home/      homepage sections
-  components/site/      header, footer, form, cards, shared building blocks
-  data/                 editable content
-  hooks/                usePageMeta, useJsonLd, useBlogFeed
-  lib/                  supabase client, form rules, utils
-  pages/                one file per page
-vercel.json             SPA routing (except /api), security headers, asset caching
-```
+any missing ones from Base44; it is not part of dev or build, so deploys never depend on Base44.
 
 ## Deploy to Vercel
 
-1. Push this repo to GitHub (see below).
-2. On vercel.com: **Add New → Project → Import** the GitHub repo.
-3. **Framework Preset: Vite**. Build command `npm run build` and output directory `dist` are the
-   defaults.
-4. Add every variable from the table above under **Environment Variables** (Production, and Preview
-   if you want previews to work).
-5. **Deploy**. Then **Settings → Domains → Add** `coaching.transformationalvocabularies.com` and
-   create the DNS record Vercel shows (usually a CNAME `coaching` → `cname.vercel-dns.com`) at your
-   domain provider.
+1. Push this repo to GitHub (below).
+2. vercel.com → **Add New → Project → Import** the repo. **Framework Preset: Vite** (build
+   `npm run build`, output `dist`).
+3. **Environment Variables:** add every variable above for **Production** and **Preview**.
+   - Set `BETTER_AUTH_URL=https://coaching.transformationalvocabularies.com` for **Production only**.
+   - Use the same `BETTER_AUTH_SECRET` everywhere.
+   - *Optional:* **Storage → Connect Database → Neon** links your Neon project and fills in
+     `DATABASE_URL` automatically.
+4. **Deploy.** Then **Settings → Domains** → add `coaching.transformationalvocabularies.com` and
+   create the DNS record Vercel shows (usually a CNAME `coaching` → `cname.vercel-dns.com`).
+5. Run `npm run create-admin` locally against the production database, and sign in at
+   `https://coaching.transformationalvocabularies.com/admin`.
 
-Every push to `main` redeploys automatically. `vercel.json` sends every non-`/api` path to
-`index.html` (so refreshing `/coaches/messiah-odinma` works) and adds security headers.
-
-`public/_redirects` and `public/.htaccess` are left over from Netlify/cPanel hosting. The form,
-admin and blog feed need the Vercel functions, so other hosts would only serve the static pages.
+Every push to `main` redeploys. `vercel.json` sends page routes (not `/api`) to `index.html`, adds
+security headers, and marks `/api/admin/*` and `/api/auth/*` as `no-store`.
 
 ### Push to GitHub
-
-With the GitHub CLI:
 
 ```bash
 gh repo create wordcompass --private --source=. --remote=origin --push
 ```
 
-Or manually: create an empty **private** repo on github.com (no README), then:
+Or create an empty **private** repo on github.com (no README), then:
 
 ```bash
 git remote add origin https://github.com/<your-account>/wordcompass.git
@@ -220,24 +237,24 @@ git push -u origin main
 ## Known dependency notices
 
 `npm audit` lists advisories for react-router v6 (open redirect via user-controlled `<Link>` paths,
-and server-side rendering hydration). This site has neither, and the fix is the v7 major upgrade. The
-remaining notices are in build-time tools (Tailwind 3's file watcher and CSS parser) and don't ship
-to visitors. Fixing them means upgrading to Tailwind 4, which would need a design check.
+and server-side rendering hydration). This site has neither, and the fix is the v7 major upgrade.
+Other notices are in build-time tools (Tailwind 3's watcher and CSS parser) that don't ship to
+visitors. Fixing them means Tailwind 4, which would need a design check.
 
 ## Before launch checklist
 
-- [ ] Supabase project created in London, migration run, sign-ups disabled, URL configuration set
-- [ ] Admin user(s) invited and added to `admins`; a non-admin account checked as refused
-- [ ] Resend domain verified, and `NOTIFY_EMAIL_FROM` switched from `onboarding@resend.dev`
-- [ ] All environment variables added in Vercel; one real test submission received by email
+- [ ] Neon project in **London**, `npm run db:migrate` run against it
+- [ ] Admin account created (`npm run create-admin`), signed in, temporary password changed
+- [ ] Resend domain verified; `NOTIFY_EMAIL_FROM` switched from `onboarding@resend.dev`
+- [ ] All environment variables in Vercel (Production + Preview); `BETTER_AUTH_URL` set for Production
+- [ ] One real test submission received by email and visible in `/admin`
 - [ ] Placeholders in **[square brackets]** replaced (search the project for `[`)
 - [ ] £X price (Pricing section, Pricing page and Terms)
 - [ ] Phone number, `phoneHref` and company number in `src/data/siteContent.js`
-- [ ] Policy texts, dates and the named safeguarding lead; Privacy Policy mentions Supabase (UK/EU
-      storage) and Resend for call requests
-- [ ] Coach photos added (`public/images/coaches/{slug}.webp`)
+- [ ] Policy texts, dates and the named safeguarding lead. The Privacy Policy should mention that
+      call requests are stored with Neon (UK) and emailed via Resend
+- [ ] Coach photos (`public/images/coaches/{slug}.webp`)
 - [ ] Coach `shortBio` texts approved
 - [ ] Testimonials confirmed as real and approved
 - [ ] `og:image` in `index.html` set to an absolute URL
-      (`https://coaching.transformationalvocabularies.com/images/brand/wordcompass-logo.png`)
 - [ ] Sitemap submitted in Google Search Console
