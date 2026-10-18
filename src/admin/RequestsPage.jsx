@@ -316,11 +316,11 @@ export default function RequestsPage() {
 function Contact({ row }) {
   return (
     <>
-      <a href={`mailto:${row.email}`} className="break-all font-semibold text-teal underline-offset-4 hover:underline">
+      <a href={`mailto:${row.email}`} className="font-semibold text-teal [overflow-wrap:anywhere] underline-offset-4 hover:underline">
         {row.email}
       </a>
       <br />
-      <a href={`tel:${row.phone.replace(/[^\d+]/g, "")}`} className="font-semibold text-teal underline-offset-4 hover:underline">
+      <a href={`tel:${row.phone.replace(/[^\d+]/g, "")}`} className="whitespace-nowrap font-semibold text-teal underline-offset-4 hover:underline">
         {row.phone}
       </a>
     </>
@@ -462,7 +462,7 @@ function RequestTable({ rows, itemProps }) {
             return (
               <tr key={row.id} className="border-b border-black/5 align-top last:border-0">
                 <td className="whitespace-nowrap px-4 py-4 text-mid">{formatReceived(row.created_at)}</td>
-                <td className="px-4 py-4">
+                <td className="min-w-[16rem] px-4 py-4">
                   <p className="font-semibold text-charcoal">{row.parent_name}</p>
                   <p className="mt-1">
                     <Contact row={row} />
