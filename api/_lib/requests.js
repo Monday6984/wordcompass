@@ -19,7 +19,7 @@ const escapeLike = (text) => text.replace(/[\\%_]/g, (char) => `\\${char}`);
 /**
  * WHERE clause for a search (and optionally a status), as { text, values }.
  * The search matches parent name, email or phone. Phone also matches ignoring spaces,
- * dashes and brackets, so "07700900123" finds "07700 900 123".
+ * dashes and brackets, and +44 vs 0, so "07700900123" finds "+44 7700 900 123".
  */
 export function buildWhere({ status, q }, { includeStatus = true } = {}) {
   const conditions = [];
@@ -36,9 +36,13 @@ export function buildWhere({ status, q }, { includeStatus = true } = {}) {
       `email ilike ${pattern} escape '\\'`,
       `phone ilike ${pattern} escape '\\'`,
     ];
+    // Phone: compare digits only, treating a leading 0 and +44 as the same (07700… = +447700…).
     const digits = q.replace(/[^\d+]/g, "");
-    if (digits.length >= 3) {
-      parts.push(`regexp_replace(phone, '[^0-9+]', '', 'g') like ${add(`%${escapeLike(digits)}%`)} escape '\\'`);
+    if (digits.replace(/\D/g, "").length >= 3) {
+      const national = digits.replace(/^\+44/, "0").replace(/^0044/, "0").replace(/\+/g, "");
+      parts.push(
+        `regexp_replace(regexp_replace(phone, '[^0-9+]', '', 'g'), '^\\+44', '0') like ${add(`%${escapeLike(national)}%`)} escape '\\'`
+      );
     }
     conditions.push(`(${parts.join(" or ")})`);
   }
