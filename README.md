@@ -70,7 +70,7 @@ secret may start with `VITE_` (those are built into the public JavaScript).
 | `BETTER_AUTH_URL` | | Site address. Local `http://localhost:3000`; Production `https://coaching.transformationalvocabularies.com`; leave **unset** for Preview (the preview's own URL is used) |
 | `RESEND_API_KEY` | **secret** | Resend API key |
 | `NOTIFY_EMAIL_TO` | | Who gets new-request alerts (comma-separate several) |
-| `NOTIFY_EMAIL_FROM` | | Sender for all emails, e.g. `WordCompass <alerts@transformationalvocabularies.com>`. Until the domain is verified: `WordCompass <onboarding@resend.dev>` (only delivers to your own Resend signup address) |
+| `NOTIFY_EMAIL_FROM` | | Sender for all emails: `WordCompass <bookings@coaching.transformationalvocabularies.com>`. Resend verified the **subdomain** `coaching.transformationalvocabularies.com` (the main domain's MX records conflicted), so the sender must be on that subdomain |
 | `BLOG_FEED_URL` | | `https://transformationalvocabularies.com/wp-json/wp/v2/posts` (or any RSS/Atom feed URL) |
 | `BLOG_SITE_URL` | | Blog home page (server side) |
 | `VITE_BLOG_SITE_URL` | public | Blog home page for the "Visit our blog" buttons |
@@ -113,7 +113,7 @@ admin and leaves the password alone. Run it locally with `DATABASE_URL` pointing
 
 - **Forgotten password:** "Forgot password?" on `/admin/login` emails a reset link. Resetting signs
   the account out everywhere. Reset emails go through Resend, so `RESEND_API_KEY` and
-  `NOTIFY_EMAIL_FROM` must be set. With the test sender, they only reach your Resend signup address.
+  `NOTIFY_EMAIL_FROM` must be set.
 - **Remove admin access:** in Neon's SQL Editor,
   `update "user" set role = 'user' where email = 'someone@example.com';`
   (or `delete from "user" where email = …` to remove the account and its sessions).
@@ -245,7 +245,7 @@ visitors. Fixing them means Tailwind 4, which would need a design check.
 
 - [ ] Neon project in **London**, `npm run db:migrate` run against it
 - [ ] Admin account created (`npm run create-admin`), signed in, temporary password changed
-- [ ] Resend domain verified; `NOTIFY_EMAIL_FROM` switched from `onboarding@resend.dev`
+- [x] Resend domain verified (`coaching.transformationalvocabularies.com`); `NOTIFY_EMAIL_FROM` set in Vercel
 - [ ] All environment variables in Vercel (Production + Preview); `BETTER_AUTH_URL` set for Production
 - [ ] One real test submission received by email and visible in `/admin`
 - [ ] Placeholders in **[square brackets]** replaced (search the project for `[`)
