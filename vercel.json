@@ -2,7 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "devCommand": "vite --port $PORT",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/api/auth/:path*", "destination": "/api/auth/[...all]" },
+    { "source": "/((?!api/|src/|node_modules/|@)[^.]*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

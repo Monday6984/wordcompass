@@ -49,8 +49,13 @@ npm run create-admin -- you@example.com "Your Name"
 npm run dev:full                # `vercel dev`: site + /api together on http://localhost:3000
 ```
 
-- **`npm run dev:full`** (`vercel dev`) runs the Vite app **and** the `/api` functions, reading
-  `.env.local`. Use it for anything involving the form, admin, login or blog feed.
+- **`npm run dev:full`** (`vercel dev`) runs the Vite app **and** the `/api` functions. Use it for
+  anything involving the form, admin, login or blog feed. **Its variables come from the
+  Development environment stored in your Vercel project**, not from `.env.local` (`vercel dev` only
+  reads a file named `.env`). After changing a value, update it in Vercel
+  (`vercel env add NAME development --force`) and restart `vercel dev`.
+- `.env.local` is still used by the npm scripts (`db:migrate`, `create-admin`, the sitemap) and by
+  plain `npm run dev`.
 - **`npm run dev`** is plain Vite on http://localhost:5173, for quick frontend-only work. `/api`
   doesn't exist there, so the blog shows its "Visit our blog" fallback and the form shows its
   "Send by email instead" option. That's expected.
@@ -217,8 +222,14 @@ any missing ones from Base44; it is not part of dev or build, so deploys never d
 5. Run `npm run create-admin` locally against the production database, and sign in at
    `https://coaching.transformationalvocabularies.com/admin`.
 
-Every push to `main` redeploys. `vercel.json` sends page routes (not `/api`) to `index.html`, adds
-security headers, and marks `/api/admin/*` and `/api/auth/*` as `no-store`.
+Every push to `main` redeploys. `vercel.json`:
+
+- sends every `/api/auth/...` path to `api/auth/[...all].js` (outside Next.js, Vercel's `[...all]`
+  only matches one path segment, so Better Auth's two-part paths like `/api/auth/sign-in/email`
+  need this rewrite);
+- sends page addresses (no dot, not `/api/`, `/src/`, `/node_modules/` or Vite's `/@…`) to
+  `index.html`, so refreshing `/coaches/messiah-odinma` works and `vercel dev` still serves Vite's files;
+- adds security headers, and marks `/api/admin/*` and `/api/auth/*` as `no-store`.
 
 ### Push to GitHub
 
