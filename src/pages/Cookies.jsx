@@ -1,5 +1,6 @@
 import React from "react";
 import PolicyPage from "@/components/site/PolicyPage";
+import { SITE } from "@/data/siteContent";
 
 export default function Cookies() {
   return (
@@ -33,7 +34,7 @@ export default function Cookies() {
         },
         {
           heading: "Questions",
-          paragraphs: ["Email hello@wordcompass.co.uk and we'll explain anything on this page."],
+          paragraphs: [`Email ${SITE.email} and we'll explain anything on this page.`],
         },
       ]}
     />

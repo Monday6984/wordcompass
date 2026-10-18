@@ -5,7 +5,7 @@ export const SITE = {
   name: "WordCompass Coaching & Mentoring",
   strapline: "Words that help young people find their way",
   parentLine: "A Transformational Vocabularies company",
-  email: "hello@wordcompass.co.uk",
+  email: "bookings@transformationalvocabularies.com",
   phone: "07XXX XXX XXX",
   phoneHref: "tel:+447000000000",
   legal: "© 2026 WordCompass Ltd. Registered in England & Wales. Company No. XXXXXXXX.",

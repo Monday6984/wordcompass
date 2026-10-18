@@ -265,7 +265,7 @@ visitors. Fixing them means Tailwind 4, which would need a design check.
 - [ ] Policy texts, dates and the named safeguarding lead. The Privacy Policy should mention that
       call requests are stored with Neon (UK) and emailed via Resend
 - [ ] Coach photos (`public/images/coaches/{slug}.webp`)
-- [ ] Coach `shortBio` texts approved
+- [x] Coach `shortBio` texts approved (18 Oct 2026)
 - [ ] Testimonials confirmed as real and approved
 - [ ] `og:image` in `index.html` set to an absolute URL
 - [ ] Sitemap submitted in Google Search Console

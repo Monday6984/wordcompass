@@ -1,5 +1,6 @@
 import React from "react";
 import PolicyPage from "@/components/site/PolicyPage";
+import { SITE } from "@/data/siteContent";
 
 export default function Privacy() {
   return (
@@ -14,7 +15,7 @@ export default function Privacy() {
           heading: "Who we are",
           paragraphs: [
             "WordCompass Coaching & Mentoring is a trading name of Transformational Vocabularies. [Registered address and company number to come].",
-            "Data protection contact: hello@wordcompass.co.uk.",
+            `Data protection contact: ${SITE.email}.`,
           ],
         },
         {
@@ -53,7 +54,7 @@ export default function Privacy() {
         {
           heading: "Your rights",
           paragraphs: [
-            "You can ask to see the information we hold about you or your child, ask for corrections, ask us to delete it, or withdraw consent. Email hello@wordcompass.co.uk and we'll respond within one month.",
+            `You can ask to see the information we hold about you or your child, ask for corrections, ask us to delete it, or withdraw consent. Email ${SITE.email} and we'll respond within one month.`,
             "If you're unhappy with how we've handled it, you can complain to the Information Commissioner's Office (ico.org.uk).",
           ],
         },
