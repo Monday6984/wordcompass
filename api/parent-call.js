@@ -155,6 +155,8 @@ export default async function handler(req, res) {
 
   // Honeypot: bots fill the hidden "company" field. Pretend it worked, save nothing.
   if (body && typeof body === "object" && typeof body.company === "string" && body.company.trim() !== "") {
+    // Logged (without personal details) so a real visitor caught by mistake can be spotted.
+    console.warn(`[parent-call] Dropped as spam: hidden field filled (${body.company.length} chars).`);
     return sendJson(res, 200, { ok: true });
   }
 

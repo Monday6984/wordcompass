@@ -264,15 +264,20 @@ export default function BookCallForm({ onSuccess }) {
         )}
       </div>
 
-      {/* Honeypot field, hidden from people and screen readers */}
+      {/* Honeypot field, hidden from people and screen readers. Deliberately NOT called
+          "company"/"organisation": browsers autofill fields with names like that from the
+          visitor's saved address, which would make real requests look like spam.
+          It is still sent to the server as `company`. */}
       <div aria-hidden="true" className="absolute left-[-9999px] h-px w-px overflow-hidden">
-        <label htmlFor="company">Company</label>
+        <label htmlFor="wc-hp-x7">Leave this field empty</label>
         <input
-          id="company"
-          name="company"
+          id="wc-hp-x7"
+          name="wc-hp-x7"
           type="text"
           tabIndex={-1}
           autoComplete="off"
+          data-1p-ignore="true"
+          data-lpignore="true"
           value={form.company}
           onChange={(event) => update("company", event.target.value)}
         />
