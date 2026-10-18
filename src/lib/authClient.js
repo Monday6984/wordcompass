@@ -8,3 +8,8 @@ export const authClient = createAuthClient({
 });
 
 export const { signIn, signOut, useSession, requestPasswordReset, resetPassword } = authClient;
+
+// The client throws (rather than returning an error) when the server can't be reached, and a
+// stalled request would otherwise wait forever. Pass these options and catch the throw.
+export const authFetchOptions = () => ({ signal: AbortSignal.timeout(30_000) });
+export const NETWORK_ERROR = "We couldn't reach the server. Check your connection and try again.";

@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { signOut, useSession } from "@/lib/authClient";
+import { authFetchOptions, signOut, useSession } from "@/lib/authClient";
 import AdminShell, { AdminLoading } from "./AdminShell";
 
 export const SignOutContext = React.createContext(() => {});
@@ -12,7 +12,11 @@ export default function RequireAdmin({ children }) {
   const navigate = useNavigate();
 
   const handleSignOut = React.useCallback(async () => {
-    await signOut();
+    try {
+      await signOut({ fetchOptions: authFetchOptions() });
+    } catch {
+      // Server unreachable: the login page will show the session is still active if so.
+    }
     navigate("/admin/login", { replace: true });
   }, [navigate]);
 

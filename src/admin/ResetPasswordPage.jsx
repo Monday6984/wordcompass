@@ -2,7 +2,7 @@ import React from "react";
 import { useSearchParams } from "react-router-dom";
 import Btn from "@/components/site/Btn";
 import { alertClass, fieldClass, labelClass } from "@/components/site/formStyles";
-import { resetPassword } from "@/lib/authClient";
+import { NETWORK_ERROR, authFetchOptions, resetPassword } from "@/lib/authClient";
 import AdminShell, { AdminMessage } from "./AdminShell";
 
 const MIN_LENGTH = 12; // keep in step with minPasswordLength in api/_lib/auth.js
@@ -58,11 +58,16 @@ export default function ResetPasswordPage() {
       return;
     }
     setBusy(true);
-    const { error: resetError } = await resetPassword({ newPassword: password, token });
-    setBusy(false);
-    if (!resetError) setDone(true);
-    else if (resetError.status === 429) setError("Too many attempts. Please wait a few minutes and try again.");
-    else setError("This link has expired or has already been used. Please request a new one from the sign-in page.");
+    try {
+      const { error: resetError } = await resetPassword({ newPassword: password, token, fetchOptions: authFetchOptions() });
+      if (!resetError) setDone(true);
+      else if (resetError.status === 429) setError("Too many attempts. Please wait a few minutes and try again.");
+      else setError("This link has expired or has already been used. Please request a new one from the sign-in page.");
+    } catch {
+      setError(NETWORK_ERROR);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

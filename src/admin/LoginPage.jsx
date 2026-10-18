@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import Btn from "@/components/site/Btn";
 import { alertClass, fieldClass, labelClass } from "@/components/site/formStyles";
-import { requestPasswordReset, signIn, useSession } from "@/lib/authClient";
+import { NETWORK_ERROR, authFetchOptions, requestPasswordReset, signIn, useSession } from "@/lib/authClient";
 import AdminShell, { AdminLoading } from "./AdminShell";
 
 function signInMessage(error) {
@@ -45,10 +45,15 @@ export default function LoginPage() {
       return;
     }
     setBusy(true);
-    const { error: signInError } = await signIn.email({ email: email.trim(), password });
-    setBusy(false);
-    if (signInError) setError(signInMessage(signInError));
-    // On success useSession updates and this page redirects to /admin.
+    try {
+      const { error: signInError } = await signIn.email({ email: email.trim(), password, fetchOptions: authFetchOptions() });
+      if (signInError) setError(signInMessage(signInError));
+      // On success useSession updates and this page redirects to /admin.
+    } catch {
+      setError(NETWORK_ERROR);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleForgot = async (event) => {
@@ -60,11 +65,19 @@ export default function LoginPage() {
       return;
     }
     setBusy(true);
-    const { error: resetError } = await requestPasswordReset({
-      email: email.trim(),
-      redirectTo: `${window.location.origin}/admin/reset-password`,
-    });
-    setBusy(false);
+    let resetError;
+    try {
+      ({ error: resetError } = await requestPasswordReset({
+        email: email.trim(),
+        redirectTo: `${window.location.origin}/admin/reset-password`,
+        fetchOptions: authFetchOptions(),
+      }));
+    } catch {
+      setError(NETWORK_ERROR);
+      return;
+    } finally {
+      setBusy(false);
+    }
     if (resetError?.status === 429) {
       setError("Too many reset requests. Please wait a while and try again.");
     } else if (resetError) {
