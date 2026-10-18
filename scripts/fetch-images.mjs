@@ -1,4 +1,4 @@
-// One-off: downloads the four site photos from Base44 into public/images/photos.
+// One-off: downloads the original Base44 site photos (the hero photo has since been replaced) into public/images/photos.
 // They are already committed, so you only need this if a file goes missing:
 //   npm run fetch-images
 // It is not part of dev/build, so Vercel never depends on Base44. Replace any photo by
@@ -11,8 +11,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = path.join(root, "public", "images", "photos");
 
 const PHOTOS = {
-  "hero-mentor-and-teen.webp":
-    "https://media.base44.com/images/public/6ac8b4d3c62ee6ba0972c04d/0a322e416_generated_d913893d.webp",
   "thoughtful-teen.webp":
     "https://media.base44.com/images/public/6ac8b4d3c62ee6ba0972c04d/662221d7c_generated_2605f7fc.webp",
   "method-cards.webp":

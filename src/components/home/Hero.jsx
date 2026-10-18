@@ -70,15 +70,15 @@ export default function Hero() {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl bg-warm aspect-[5/4] sm:aspect-[16/10] lg:aspect-[4/5]">
+        <div className="overflow-hidden rounded-2xl bg-warm aspect-[5/4] sm:aspect-[16/10] lg:aspect-[4/4.4]">
           <Image
             src={IMAGES.hero}
-            alt="A mentor and a teenager in conversation at a table by a sunlit window"
+            alt="A smiling young person talking with a mentor at a table with open notebooks"
             loading="eager"
             fetchpriority="high"
-            width={1600}
-            height={1280}
-            className="h-full w-full object-cover object-[50%_40%]"
+            width={1500}
+            height={1000}
+            className="h-full w-full object-cover object-[50%_50%] lg:object-[41%_50%]"
           />
         </div>
       </div>
