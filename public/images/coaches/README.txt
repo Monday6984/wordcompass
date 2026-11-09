@@ -4,7 +4,6 @@ COACH PHOTOS
 Put each coach's photo in this folder, named after the coach's `slug` in src/data/coaches.js:
 
   messiah-odinma.webp
-  mayowa-adebambo-agyo.webp
   adaeze-obasuyi.webp
   smart-osadolor.webp
 
