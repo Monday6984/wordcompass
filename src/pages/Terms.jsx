@@ -6,8 +6,8 @@ export default function Terms() {
     <PolicyPage
       title="Terms of Service"
       metaTitle="Terms | WordCompass Coaching & Mentoring"
-      metaDescription="The terms covering the free six-session coaching programme, scheduling, parental consent, and the limits of coaching as a service."
-      intro="The straightforward terms that apply to the free sessions and to continuing after week six."
+      metaDescription="The terms covering the free three-session coaching programme, scheduling, parental consent, and the limits of coaching as a service."
+      intro="The straightforward terms that apply to the free sessions and to continuing after week three."
       updated="Last updated: [date to come] · [Full terms to come]"
       blocks={[
         {
@@ -17,11 +17,11 @@ export default function Terms() {
           ],
         },
         {
-          heading: "The free six sessions",
+          heading: "The free three sessions",
           bullets: [
-            "One hour per week, online, one-to-one, for six weeks, at no cost.",
-            "No obligation to continue, and no obligation to pay at any point during the six weeks.",
-            "Continuing after week six is optional and priced at £X per hour, billed in blocks of six.",
+            "One hour per week, online, one-to-one, for three weeks, at no cost.",
+            "No obligation to continue, and no obligation to pay at any point during the three weeks.",
+            "Continuing after week three is optional and priced at £X per hour, billed in blocks of six.",
             "[Full block-of-six terms to come]",
           ],
         },

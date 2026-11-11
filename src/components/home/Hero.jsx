@@ -30,7 +30,7 @@ export default function Hero() {
           </h1>
 
           <p className="mt-6 max-w-[34rem] font-body text-[1.0625rem] leading-[1.7] text-mid sm:text-lg">
-            WordCompass pairs young people aged 12+ with DBS-checked mind mentors for six free
+            WordCompass pairs young people aged 12+ with DBS-checked mind mentors for three free
             one-to-one sessions — building confidence, focus and self-belief in sport, study and life.
           </p>
 

@@ -6,8 +6,6 @@ export const SITE = {
   strapline: "Words that help young people find their way",
   parentLine: "A Transformational Vocabularies company",
   email: "bookings@transformationalvocabularies.com",
-  phone: "07XXX XXX XXX",
-  phoneHref: "tel:+447000000000",
   legal: "© 2026 WordCompass Ltd. Registered in England & Wales. Company No. XXXXXXXX.",
 };
 
@@ -42,11 +40,11 @@ export const TRUST_ITEMS = [
   "Fully Insured",
   "Online UK-Wide",
   "Safeguarding Trained",
-  "6 Sessions Free",
+  "3 Sessions Free",
 ];
 
 export const HERO_TICKS = [
-  "Six 1-hour sessions — completely free",
+  "Three 1-hour sessions — completely free",
   "Fully online, UK-wide",
   "Qualified, DBS-checked coaches",
   "No obligation to continue",
@@ -56,7 +54,7 @@ export const STEPS = [
   {
     number: "01",
     title: "Free parent call",
-    body: "A 20-minute conversation. Tell us about your child — their strengths, their struggles, what you've already tried. No obligation.",
+    body: "A 20-minute conversation. Tell us about your child: their strengths, their struggles and what you've already tried.",
     imageLabel: "[Photo: 20-minute parent call]",
   },
   {
@@ -67,15 +65,15 @@ export const STEPS = [
   },
   {
     number: "03",
-    title: "Six weekly sessions",
+    title: "Three weekly sessions",
     body: "One hour, once a week, online. Your child works one-to-one with their mentor using our Transformational Vocabulary tools.",
     imageLabel: "[Photo: online one-to-one session]",
   },
   {
     number: "04",
     title: "Review & decide",
-    body: "After session six, we sit down with you. You decide whether to continue — with no pressure either way.",
-    imageLabel: "[Photo: week-six review with parent]",
+    body: "After session three, we sit down with you and you decide whether to continue. Either answer is fine.",
+    imageLabel: "[Photo: week-three review with parent]",
   },
 ];
 
@@ -123,16 +121,16 @@ export const COACH_CHECKS = [
   "A mentor first, a teacher second",
 ];
 
-export const DURING_SIX_WEEKS = [
+export const DURING_THREE_WEEKS = [
   "A 20-minute onboarding call before sessions begin",
   "A short written update after every session",
   "The vocabulary words being worked on that week",
   "Tools and prompts to use at home",
   "Direct email access to your child's mentor",
-  "A full review at session six",
+  "A full review at session three",
 ];
 
-export const AFTER_SIX_WEEKS = [
+export const AFTER_THREE_WEEKS = [
   "A written progress summary",
   "Recommendations for next steps",
   "Option to continue — or to stop, with no pressure",
@@ -140,18 +138,18 @@ export const AFTER_SIX_WEEKS = [
 ];
 
 export const FREE_INCLUDES = [
-  "Six one-hour weekly sessions",
+  "Three one-hour weekly sessions",
   "Online, one-to-one",
   "DBS-checked mind mentor",
   "Parent updates after each session",
-  "Full written review at week six",
+  "Full written review at week three",
   "No obligation to continue",
 ];
 
 export const TESTIMONIALS = [
   {
     quote:
-      "After four sessions, Jamie started setting his own alarm for training. I hadn't asked him once.",
+      "After three sessions, Jamie started setting his own alarm for training. I hadn't asked him once.",
     source: "Parent of a 14-year-old, Manchester",
   },
   {
@@ -185,7 +183,7 @@ export const FAQS = [
   },
   {
     q: "Is it really free?",
-    a: "Yes. Six one-hour sessions at no cost, with no obligation. We offer this because we'd rather you judge us on results than on a sales pitch.",
+    a: "Yes. Three one-hour sessions at no cost, with no obligation. We offer this because we'd rather you judge us on results than on a sales pitch.",
   },
   {
     q: "Are your coaches qualified?",
@@ -200,11 +198,11 @@ export const FAQS = [
 export const SESSION_SHAPE = [
   {
     title: "First 10 minutes",
-    body: "Check-in — how has the week been.",
+    body: "Check-in: how has the week been?",
   },
   {
     title: "Next 35 minutes",
-    body: "Focused work on the week's vocabulary word.",
+    body: "Working through the week's vocabulary word.",
   },
   {
     title: "Final 15 minutes",

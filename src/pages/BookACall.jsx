@@ -68,7 +68,7 @@ export default function BookACall() {
             <>
               <p className="measure-wide text-mid">
                 We'll call you to talk through what's going on, answer your questions, and explain how
-                the six free sessions work. There's no obligation to go any further.
+                the three free sessions work. There's no obligation to go any further.
               </p>
               <div className="mt-9">
                 <BookCallForm onSuccess={({ via }) => setSentVia(via)} />

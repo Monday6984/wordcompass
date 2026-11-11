@@ -8,8 +8,8 @@ import { FAQS } from "@/data/siteContent";
 
 export default function Pricing() {
   usePageMeta(
-    "Pricing — Six Sessions Free | WordCompass Coaching & Mentoring",
-    "Your first six one-to-one sessions are free, with no obligation to continue. Continuing after week six is £X per hour, billed in blocks of six."
+    "Pricing — Three Sessions Free | WordCompass Coaching & Mentoring",
+    "Your first three one-to-one sessions are free, with no obligation to continue. Continuing after week three is £X per hour, billed in blocks of six."
   );
 
   const freeQuestion = FAQS.find((item) => item.q === "Is it really free?");
@@ -19,7 +19,7 @@ export default function Pricing() {
       <PageHero
         eyebrow="Pricing"
         title="Start free. Decide later."
-        intro="We'd rather you judge us on results than on a sales pitch — so the first six sessions cost nothing at all."
+        intro="We'd rather you judge us on results than on a sales pitch — so the first three sessions cost nothing at all."
       />
 
       <PricingSection />

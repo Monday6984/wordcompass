@@ -4,12 +4,12 @@ import PageHero from "@/components/site/PageHero";
 import CheckList from "@/components/site/CheckList";
 import FinalCta from "@/components/site/FinalCta";
 import { IMAGES } from "@/data/assets";
-import { AFTER_SIX_WEEKS, DURING_SIX_WEEKS } from "@/data/siteContent";
+import { AFTER_THREE_WEEKS, DURING_THREE_WEEKS } from "@/data/siteContent";
 
 export default function ForParents() {
   usePageMeta(
     "For Parents — Coaching for Young People Aged 12+ | WordCompass",
-    "You are the client: updates after every session, the tools we use, and a full review at week six. Free one-to-one coaching for young people aged 12+, online UK-wide."
+    "You are the client: updates after every session, the tools we use, and a full review at week three. Free one-to-one coaching for young people aged 12+, online UK-wide."
   );
 
   return (
@@ -26,11 +26,11 @@ export default function ForParents() {
         <div className="wrap grid gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <h2 className="font-heading text-2xl font-bold text-charcoal">What you get</h2>
-            <CheckList items={DURING_SIX_WEEKS} className="mt-6" />
+            <CheckList items={DURING_THREE_WEEKS} className="mt-6" />
             <h2 className="mt-12 font-heading text-2xl font-bold text-charcoal">
-              After the six weeks
+              After the three weeks
             </h2>
-            <CheckList items={AFTER_SIX_WEEKS} className="mt-6" />
+            <CheckList items={AFTER_THREE_WEEKS} className="mt-6" />
           </div>
 
           <div className="space-y-10">

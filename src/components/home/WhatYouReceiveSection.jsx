@@ -1,6 +1,6 @@
 import React from "react";
 import CheckList from "@/components/site/CheckList";
-import { AFTER_SIX_WEEKS, DURING_SIX_WEEKS } from "@/data/siteContent";
+import { AFTER_THREE_WEEKS, DURING_THREE_WEEKS } from "@/data/siteContent";
 
 export default function WhatYouReceiveSection() {
   return (
@@ -15,12 +15,12 @@ export default function WhatYouReceiveSection() {
 
         <div className="mt-12 grid gap-8 lg:grid-cols-2">
           <div className="card-warm">
-            <h3 className="font-heading text-xl font-bold text-charcoal">During the six weeks</h3>
-            <CheckList items={DURING_SIX_WEEKS} className="mt-6" />
+            <h3 className="font-heading text-xl font-bold text-charcoal">During the three weeks</h3>
+            <CheckList items={DURING_THREE_WEEKS} className="mt-6" />
           </div>
           <div className="card-warm">
-            <h3 className="font-heading text-xl font-bold text-charcoal">After the six weeks</h3>
-            <CheckList items={AFTER_SIX_WEEKS} className="mt-6" />
+            <h3 className="font-heading text-xl font-bold text-charcoal">After the three weeks</h3>
+            <CheckList items={AFTER_THREE_WEEKS} className="mt-6" />
           </div>
         </div>
       </div>

@@ -20,7 +20,7 @@ export default function NotFound() {
           It may have moved, or the link may be mistyped. These might help instead:
         </p>
         <ul className="mt-6 space-y-2">
-          <li><Link to="/how-it-works" className="font-semibold text-teal underline underline-offset-4">How the six free sessions work</Link></li>
+          <li><Link to="/how-it-works" className="font-semibold text-teal underline underline-offset-4">How the three free sessions work</Link></li>
           <li><Link to="/coaches" className="font-semibold text-teal underline underline-offset-4">Meet the coaches</Link></li>
           <li><Link to="/faq" className="font-semibold text-teal underline underline-offset-4">Questions parents ask</Link></li>
         </ul>

@@ -26,10 +26,6 @@ export default function Footer() {
             <a href={`mailto:${SITE.email}`} className="underline decoration-white/40 underline-offset-4 hover:decoration-white">
               {SITE.email}
             </a>
-            <br />
-            <a href={SITE.phoneHref} className="underline decoration-white/40 underline-offset-4 hover:decoration-white">
-              {SITE.phone}
-            </a>
           </p>
         </div>
 
@@ -80,7 +76,7 @@ export default function Footer() {
       <div className="border-t border-white/15">
         <div className="wrap py-6">
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-white/70">
-            6 sessions free · DBS checked · Fully insured · Online UK-wide
+            3 sessions free · DBS checked · Fully insured · Online UK-wide
           </p>
           <p className="mt-3 text-sm text-white/70">{SITE.legal}</p>
         </div>

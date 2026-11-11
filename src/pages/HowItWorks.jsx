@@ -9,16 +9,16 @@ import { SESSION_SHAPE, STEPS } from "@/data/siteContent";
 
 export default function HowItWorks() {
   usePageMeta(
-    "How It Works — Six Free Sessions | WordCompass Coaching & Mentoring",
-    "How the six free WordCompass sessions work: a free parent call, a coach match, six weekly one-to-one online sessions with a DBS-checked mind mentor, then a review."
+    "How It Works — Three Free Sessions | WordCompass Coaching & Mentoring",
+    "How the three free WordCompass sessions work: a free parent call, a coach match, three weekly one-to-one online sessions with a DBS-checked mind mentor, then a review."
   );
 
   return (
     <>
       <PageHero
         eyebrow="How it works"
-        title="Six free sessions, one step at a time."
-        intro="No contracts, no pressure, no surprises. Here's exactly what happens from the moment you book a parent call."
+        title="Three free sessions, one step at a time."
+        intro="There's no contract to sign. This is what happens after you book a parent call."
         image={IMAGES.onlineSession}
         imageAlt="A young person at a desk during an online mentoring session, seen from behind"
       />

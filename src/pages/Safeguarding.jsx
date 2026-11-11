@@ -45,7 +45,7 @@ export default function Safeguarding() {
           heading: "Concerns and complaints",
           paragraphs: [
             "If you have any concern about a session, a mentor, or something your child has said, contact the named safeguarding lead immediately. We log every concern and review it.",
-            "Contact: [Safeguarding lead name to come] · [safeguarding@wordcompass.co.uk] · 07XXX XXX XXX",
+            "Contact: [Safeguarding lead name to come] · safeguarding@transformationalvocabularies.com",
           ],
         },
       ]}

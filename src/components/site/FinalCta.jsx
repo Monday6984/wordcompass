@@ -2,9 +2,9 @@ import React from "react";
 import Btn from "./Btn";
 
 export default function FinalCta({
-  heading = "One conversation could change the next six weeks.",
-  body = "Book a free 20-minute call. Tell us about your child. We'll tell you honestly whether we can help.",
-  microCopy = "No obligation. No sales pitch. Just a conversation.",
+  heading = "Start with one conversation.",
+  body = "Book a free 20-minute call and tell us about your child. We'll tell you whether we can help.",
+  microCopy = "There's no obligation and no sales pitch.",
 }) {
   return (
     <section className="dark-gradient">

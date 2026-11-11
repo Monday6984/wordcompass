@@ -11,7 +11,7 @@ export default function HowItWorksSection() {
           className="max-w-xl font-heading font-black text-charcoal"
           style={{ fontSize: "clamp(1.8rem, 3vw, 2.8rem)", lineHeight: 1.15 }}
         >
-          How the six free sessions work
+          How the three free sessions work
         </h2>
         <StepTimeline steps={STEPS} />
         <div className="mt-12">

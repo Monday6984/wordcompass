@@ -8,7 +8,7 @@ import { SESSION_SHAPE } from "@/data/siteContent";
 export default function ForYoungPeople() {
   usePageMeta(
     "For Young People — Your Goals, Your Pace, Your Space | WordCompass",
-    "If you're 12 or over and things feel stuck, coaching is a space that's yours. Six free one-to-one online sessions with a DBS-checked mentor."
+    "If you're 12 or over and things feel stuck, coaching is a space that's yours. Three free one-to-one online sessions with a DBS-checked mentor."
   );
 
   return (
@@ -16,7 +16,7 @@ export default function ForYoungPeople() {
       <PageHero
         eyebrow="For young people aged 12+"
         title="Your goals. Your pace. Your space."
-        intro="Six free sessions, one hour a week, online. No one makes you talk about anything you don't want to talk about."
+        intro="Three free sessions, one hour a week, online. No one makes you talk about anything you don't want to talk about."
         image={IMAGES.thoughtfulTeen}
         imageAlt="A teenager sitting by a window, thinking quietly"
       />

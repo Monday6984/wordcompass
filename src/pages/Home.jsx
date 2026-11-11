@@ -18,7 +18,7 @@ import FinalCta from "@/components/site/FinalCta";
 export default function Home() {
   usePageMeta(
     "Free Life Coaching for Young People Aged 12+ | WordCompass Coaching & Mentoring",
-    "Free one-to-one life coaching for young people aged 12+. DBS-checked mind mentors, online UK-wide. Six sessions free, no obligation. Book a parent call."
+    "Free one-to-one life coaching for young people aged 12+. DBS-checked mind mentors, online UK-wide. Three sessions free, no obligation. Book a parent call."
   );
 
   return (
