@@ -44,7 +44,7 @@ export const TRUST_ITEMS = [
 ];
 
 export const HERO_TICKS = [
-  "Three 1-hour sessions — completely free",
+  "Three sessions of up to an hour — completely free",
   "Fully online, UK-wide",
   "Qualified, DBS-checked coaches",
   "No obligation to continue",
@@ -65,8 +65,8 @@ export const STEPS = [
   },
   {
     number: "03",
-    title: "Three weekly sessions",
-    body: "One hour, once a week, online. Your child works one-to-one with their mentor using our Transformational Vocabulary tools.",
+    title: "Weekly sessions",
+    body: "Up to one hour, once a week, online. Your child works one-to-one with their mentor using our Transformational Vocabulary tools.",
     imageLabel: "[Photo: online one-to-one session]",
   },
   {
@@ -138,7 +138,7 @@ export const AFTER_THREE_WEEKS = [
 ];
 
 export const FREE_INCLUDES = [
-  "Three one-hour weekly sessions",
+  "Three weekly sessions of up to one hour",
   "Online, one-to-one",
   "DBS-checked mind mentor",
   "Parent updates after each session",
@@ -183,7 +183,7 @@ export const FAQS = [
   },
   {
     q: "Is it really free?",
-    a: "Yes. Three one-hour sessions at no cost, with no obligation. We offer this because we'd rather you judge us on results than on a sales pitch.",
+    a: "Yes. Three sessions of up to one hour each, at no cost, with no obligation. We offer this because we'd rather you judge us on results than on a sales pitch.",
   },
   {
     q: "Are your coaches qualified?",

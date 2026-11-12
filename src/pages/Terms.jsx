@@ -19,7 +19,7 @@ export default function Terms() {
         {
           heading: "The free three sessions",
           bullets: [
-            "One hour per week, online, one-to-one, for three weeks, at no cost.",
+            "Up to one hour per week, online, one-to-one, for three weeks, at no cost.",
             "No obligation to continue, and no obligation to pay at any point during the three weeks.",
             "Continuing after week three is optional and priced at £X per hour, billed in blocks of six.",
             "[Full block-of-six terms to come]",

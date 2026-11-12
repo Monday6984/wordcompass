@@ -16,7 +16,7 @@ export default function ForYoungPeople() {
       <PageHero
         eyebrow="For young people aged 12+"
         title="Your goals. Your pace. Your space."
-        intro="Three free sessions, one hour a week, online. No one makes you talk about anything you don't want to talk about."
+        intro="Three free sessions, up to one hour a week, online. No one makes you talk about anything you don't want to talk about."
         image={IMAGES.thoughtfulTeen}
         imageAlt="A teenager sitting by a window, thinking quietly"
       />
