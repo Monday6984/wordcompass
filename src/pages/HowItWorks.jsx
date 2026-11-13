@@ -23,7 +23,7 @@ export default function HowItWorks() {
         imageAlt="A young person at a desk during an online mentoring session, seen from behind"
       />
 
-      <section className="bg-cream py-16 sm:py-24">
+      <section className="bg-cream pb-16 pt-4 sm:pb-24 sm:pt-6">
         <div className="wrap">
           <StepTimeline steps={STEPS} showImages />
           <div className="mt-12">

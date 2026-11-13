@@ -1,6 +1,8 @@
 // Shared site content for WordCompass Coaching & Mentoring.
 // Anything in [square brackets] is a placeholder awaiting real content from the client.
 
+import { IMAGES } from "./assets";
+
 export const SITE = {
   name: "WordCompass Coaching & Mentoring",
   strapline: "Words that help young people find their way",
@@ -55,25 +57,29 @@ export const STEPS = [
     number: "01",
     title: "Free parent call",
     body: "A 20-minute conversation. Tell us about your child: their strengths, their struggles and what you've already tried.",
-    imageLabel: "[Photo: 20-minute parent call]",
+    image: IMAGES.stepParentCall,
+    imageAlt: "A smiling parent on the phone, sitting on a sofa with a laptop and an open notebook",
   },
   {
     number: "02",
     title: "Coach match",
     body: "We match your child with a DBS-checked mind mentor suited to their personality, interests and needs.",
-    imageLabel: "[Photo: matching a mentor to a young person]",
+    image: IMAGES.stepMentorMatch,
+    imageAlt: "A smiling mentor talking with a young person across a desk with open books",
   },
   {
     number: "03",
     title: "Weekly sessions",
     body: "Up to one hour, once a week, online. Your child works one-to-one with their mentor using our Transformational Vocabulary tools.",
-    imageLabel: "[Photo: online one-to-one session]",
+    image: IMAGES.stepOnlineSession,
+    imageAlt: "A boy in headphones waving to his mentor on a laptop video call",
   },
   {
     number: "04",
     title: "Review & decide",
     body: "After session three, we sit down with you and you decide whether to continue. Either answer is fine.",
-    imageLabel: "[Photo: week-three review with parent]",
+    image: IMAGES.stepReview,
+    imageAlt: "A father and son smiling at each other at a laptop",
   },
 ];
 
@@ -100,17 +106,29 @@ export const DIFFERENTIATORS = [
   },
 ];
 
+// Headwords from the Transformational Vocabularies card set (CARD_FINAL.pdf).
+// The first five also appear on the homepage method section.
 export const VOCAB_WORDS = [
   "Resilience",
-  "Focus",
-  "Integrity",
   "Self-respect",
+  "Integrity",
+  "Perseverance",
+  "Empathy",
+  "Accountability",
   "Gratitude",
-  "Courage",
-  "Patience",
   "Curiosity",
-  "Perspective",
   "Consistency",
+  "Self-awareness",
+  "Locus of control",
+  "Optimism",
+  "Discipline",
+  "Humility",
+  "Adaptability",
+  "Purpose",
+  "Vision",
+  "Initiative",
+  "Confidence",
+  "Forgiveness",
 ];
 
 export const COACH_CHECKS = [

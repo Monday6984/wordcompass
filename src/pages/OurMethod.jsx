@@ -36,7 +36,7 @@ export default function OurMethod() {
             The word list
           </h2>
           <p className="measure-wide mt-6 text-mid">
-            [Full word list to come — these are the words currently in use.]
+            A selection of the words from our Transformational Vocabularies card set.
           </p>
           <ul className="mt-9 flex flex-wrap gap-3">
             {VOCAB_WORDS.map((word, index) => (
@@ -59,7 +59,7 @@ export default function OurMethod() {
               Your mentor brings the words that fit your child's goals — and your child keeps them.
             </p>
             <p className="mt-6 font-mono text-xs uppercase tracking-[0.14em] text-mid">
-              Sample card · [Full card set imagery to come]
+              Sample card
             </p>
           </div>
 
@@ -81,9 +81,11 @@ export default function OurMethod() {
               </ul>
             </div>
             <Image
-              src={IMAGES.methodCards}
-              alt="A stack of printed vocabulary cards on a linen surface"
-              className="h-56 w-full rounded-2xl object-cover sm:h-72"
+              src={IMAGES.cardSetBox}
+              alt="The Transformational Vocabularies card set box, with word cards and conversation-starter cards fanned out in front"
+              width={960}
+              height={1241}
+              className="h-auto w-full rounded-2xl"
             />
           </div>
         </div>

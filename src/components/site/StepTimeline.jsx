@@ -1,4 +1,5 @@
 import React from "react";
+import { Image } from "@/components/ui/image";
 
 export default function StepTimeline({ steps, showImages = false }) {
   return (
@@ -18,7 +19,18 @@ export default function StepTimeline({ steps, showImages = false }) {
               {step.title}
             </h3>
             <p className="measure-wide mt-3 text-mid">{step.body}</p>
-            {showImages && step.imageLabel && (
+            {/* Step photos: 16:9, as wide as the step text. Supply landscape images about
+                1600 x 900 (3:2 also works; it is cropped slightly top and bottom). */}
+            {showImages && step.image && (
+              <Image
+                src={step.image}
+                alt={step.imageAlt || ""}
+                width={1600}
+                height={900}
+                className="measure-wide mt-6 aspect-video w-full rounded-2xl object-cover"
+              />
+            )}
+            {showImages && !step.image && step.imageLabel && (
               <div
                 className="mt-6 flex h-44 items-center justify-center rounded-2xl border-2 border-dashed border-black/15 bg-[#e8e4de] px-6 text-center sm:h-56"
                 role="img"
